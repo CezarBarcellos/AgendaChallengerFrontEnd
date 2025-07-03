@@ -1,1 +1,43 @@
-<p>agenda works!</p>
+<div class="compromissos-container">
+  <h2>Lista de Compromissos</h2>
+
+  <table class="compromissos-table">
+    <thead>
+      <tr>
+        <th>Título</th>
+        <th>Descrição</th>
+        <th>Início</th>
+        <th>Término</th>
+        <th>Localização</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of compromissos">
+        <td>{{ c.titulo }}</td>
+        <td>{{ c.descricao }}</td>
+        <td>{{ c.dataHoraInicio | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ c.dataHoraTermino | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ c.localizacao }}</td>
+        <td class="status-cell">
+          <fa-icon
+            [icon]="
+              c.status === 'confirmado' ? 'check-circle' :
+              c.status === 'pendente' ? 'clock' :
+              'times-circle'
+            "
+            [ngClass]="
+              c.status === 'confirmado' ? 'status-confirmado' :
+              c.status === 'pendente' ? 'status-pendente' :
+              'status-cancelado'
+            "
+          ></fa-icon>
+          <span class="status-text">{{ c.status | titlecase }}</span>
+        </td>
+      </tr>
+      <tr *ngIf="compromissos.length === 0">
+        <td colspan="6" class="empty-message">Nenhum compromisso encontrado.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
