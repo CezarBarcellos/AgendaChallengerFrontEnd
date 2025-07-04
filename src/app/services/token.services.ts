@@ -3,12 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/env.dev';
 
-export interface LoginRequest {
-  usuario: string;
+export interface TokenRequest {
+  nome: string;
   senha: string;
 }
 
-export interface LoginResponse {
+export interface TokenResponse {
   sucesso: boolean;
   token?: string;
   mensagem?: string;
@@ -17,12 +17,19 @@ export interface LoginResponse {
 @Injectable({
   providedIn: 'root'
 })
-export class LoginService {
+export class TokenService {
   private apiUrl = environment.apiUrl;
+  nomeT = environment.token.nome;
+  senhaT = environment.token.senha;
 
   constructor(private http: HttpClient) {}
 
-  login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(this.apiUrl + 'AutenticarUsuario', credentials);
+  getToken(): Observable<TokenResponse> {
+    const credentials: TokenRequest = {
+      nome: this.nomeT,
+      senha: this.senhaT
+    };
+
+    return this.http.post<TokenResponse>(this.apiUrl + 'Login', credentials);
   }
 }

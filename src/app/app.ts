@@ -7,7 +7,7 @@ import { HttpClientModule } from '@angular/common/http';
   standalone: true,
   templateUrl: './app.html',
   styleUrls: ['./app.scss'],
-  imports: [RouterOutlet, HttpClientModule] // Removido CompromissosComponent e Home
+  imports: [RouterOutlet, HttpClientModule]
 })
 export class App {
   protected title = 'Agenda';

@@ -1,97 +1,101 @@
 <div class="compromissos-container">
+  <div class="acoes" *ngIf="abaAtiva !== 'calendario'">
+    <button class="btn btn-add" (click)="abrirNovo()"><i class="pi pi-plus"></i> Novo</button>
+    <button class="btn btn-calendar" (click)="visualizarCalendario()"><i class="pi pi-calendar"></i> Calendário</button>
+  </div>
 
-  <h2>
-    <i class="fas fa-calendar-alt"></i>
-    {{ modoEdicao ? (editandoId !== null ? 'Editar Compromisso' : 'Novo Compromisso') : 'Lista de Compromissos' }}
+  <div *ngIf="abaAtiva === 'tabela'">
+    <h2><i class="pi pi-list"></i> Lista de Compromissos</h2>
+    <table class="grid">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Início</th>
+          <th>Término</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of compromissos">
+          <td>{{ c.titulo }}</td>
+          <td>{{ c.inicio | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ c.termino | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td [ngClass]="'status-' + c.status">{{ getTextoStatus(c.status) }}</td>
+          <td>
+            <button class="btn btn-edit" (click)="abrirEdicao(c.id!)"><i class="pi pi-pencil"></i> Editar</button>
+            <button class="btn btn-delete" (click)="onExcluir(c.id!)"><i class="pi pi-trash"></i> Excluir</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-    <!-- Botão para abrir o formulário Novo -->
-    <button *ngIf="!modoEdicao" class="btn btn-add" (click)="abrirNovo()">
-      <i class="fas fa-plus"></i> Novo
-    </button>
+  <div *ngIf="modoEdicao">
+    <h2><i class="pi pi-pencil"></i> {{ editandoId ? 'Editar' : 'Novo' }} Compromisso</h2>
+    <form [formGroup]="formCompromisso" (ngSubmit)="salvar()">
+      <div class="form-group">
+        <label for="titulo">Título</label>
+        <input id="titulo" formControlName="titulo" />
+      </div>
 
-    <!-- Botão para cancelar edição/criação -->
-    <button *ngIf="modoEdicao" class="btn btn-cancel" (click)="cancelar()">
-      <i class="fas fa-times"></i> Cancelar
-    </button>
-  </h2>
+      <div class="form-group">
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" formControlName="descricao"></textarea>
+      </div>
 
-  <!-- Tabela com lista de compromissos -->
-  <table *ngIf="!modoEdicao" class="grid">
-    <thead>
-      <tr>
-        <th><i class="fas fa-heading"></i> Título</th>
-        <th><i class="fas fa-align-left"></i> Descrição</th>
-        <th><i class="fas fa-play"></i> Início</th>
-        <th><i class="fas fa-stop"></i> Término</th>
-        <th><i class="fas fa-map-marker-alt"></i> Localização</th>
-        <th><i class="fas fa-info-circle"></i> Status</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let c of compromissos; let i = index">
-        <td>{{ c.titulo }}</td>
-        <td>{{ c.descricao }}</td>
-        <td>{{ c.inicio | date: 'short' }}</td>
-        <td>{{ c.termino | date: 'short' }}</td>
-        <td>{{ c.localizacao }}</td>
-        <td>
-          <span [ngClass]="{
-            'status-confirmado': c.status === 'confirmado',
-            'status-pendente': c.status === 'pendente',
-            'status-cancelado': c.status === 'cancelado'
-          }">
-            {{ c.status }}
-          </span>
-        </td>
-        <td class="acoes">
-          <button class="btn btn-edit" *ngIf="c.id" (click)="abrirEdicao(c.id)">Editar</button>
-          <button *ngIf="c.id" (click)="onExcluir(c.id)" class="btn btn-delete">
-          <i class="fa fa-trash"></i> Excluir
-        </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+      <div class="form-group">
+        <label for="inicio">Início</label>
+        <input id="inicio" type="datetime-local" formControlName="inicio" />
+      </div>
 
-  <!-- Formulário Novo / Editar -->
-  <form *ngIf="modoEdicao" [formGroup]="formCompromisso" (ngSubmit)="salvar()">
-    <div class="form-group">
-      <label for="titulo">Título</label>
-      <input id="titulo" type="text" formControlName="titulo" required />
+      <div class="form-group">
+        <label for="termino">Término</label>
+        <input id="termino" type="datetime-local" formControlName="termino" />
+      </div>
+
+      <div class="form-group">
+        <label for="localizacao">Localização</label>
+        <input id="localizacao" formControlName="localizacao" />
+      </div>
+
+      <div class="form-group">
+        <label for="status">Status</label>
+        <select id="status" formControlName="status">
+          <option value="pendente">Pendente</option>
+          <option value="confirmado">Confirmado</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </div>
+
+      <button class="btn-save" type="submit" [disabled]="formCompromisso.invalid">Salvar</button>
+      <button class="btn-cancel" type="button" (click)="cancelar()">Cancelar</button>
+    </form>
+  </div>
+
+  <div *ngIf="abaAtiva === 'calendario'" class="calendario-container">
+    <div class="acoes">
+      <button class="btn btn-add" (click)="abrirNovo()"><i class="pi pi-plus"></i> Novo</button>
+      <button class="btn btn-back" (click)="abaAtiva = 'tabela'"><i class="pi pi-arrow-left"></i> Voltar</button>
     </div>
 
-    <div class="form-group">
-      <label for="descricao">Descrição</label>
-      <textarea id="descricao" formControlName="descricao" rows="3"></textarea>
-    </div>
+    <h3><i class="pi pi-calendar"></i> Calendário do Mês</h3>
 
-    <div class="form-group">
-      <label for="inicio">Início</label>
-      <input id="inicio" type="datetime-local" formControlName="inicio" required />
-    </div>
+    <div class="calendario-grid">
+      <div class="dia-header" *ngFor="let d of diasSemana">{{ d }}</div>
 
-    <div class="form-group">
-      <label for="termino">Término</label>
-      <input id="termino" type="datetime-local" formControlName="termino" required />
+      <div class="dia" *ngFor="let d of diasDoMes" [ngClass]="{ hoje: d.hoje }">
+        <ng-container *ngIf="!d.vazio">
+          <div class="numero">{{ d.numero }}</div>
+          <div
+            class="evento"
+            *ngFor="let e of d.compromissos"
+            [title]="'Título: ' + e.titulo + '\nHora: ' + (e.inicio | date:'HH:mm')"
+          >
+            {{ e.titulo }}
+          </div>
+        </ng-container>
+      </div>
     </div>
-
-    <div class="form-group">
-      <label for="localizacao">Localização</label>
-      <input id="localizacao" type="text" formControlName="localizacao" />
-    </div>
-
-    <div class="form-group">
-      <label for="status">Status</label>
-      <select id="status" formControlName="status" required>
-        <option value="confirmado">Confirmado</option>
-        <option value="pendente">Pendente</option>
-        <option value="cancelado">Cancelado</option>
-      </select>
-    </div>
-
-    <button type="submit" class="btn btn-save" [disabled]="formCompromisso.invalid">
-      <i class="fas fa-save"></i> Salvar
-    </button>
-  </form>
+  </div>
 </div>

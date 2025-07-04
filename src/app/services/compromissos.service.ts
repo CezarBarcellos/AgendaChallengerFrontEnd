@@ -1,18 +1,19 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, switchMap } from 'rxjs';
+import { TokenService } from './token.services';
+import { environment } from '../../environments/env.dev';
 
 export interface Compromisso {
   id?: string;
   titulo: string;
   descricao: string;
-  inicio: string;  // data em ISO string
+  inicio: string;
   termino: string;
   localizacao: string;
   status: 'confirmado' | 'pendente' | 'cancelado';
 }
 
-// Interface da resposta da API para listar compromissos
 export interface ListaCompromissosResponse {
   lstCompromissos: Array<{
     titulo: string;
@@ -29,55 +30,86 @@ export interface ListaCompromissosResponse {
   providedIn: 'root'
 })
 export class CompromissosService {
+  private apiUrl = environment.apiUrl;
 
-  private apiUrl = 'https://localhost:7068/';
+  constructor(
+    private http: HttpClient,
+    private tokenService: TokenService
+  ) {}
 
-  constructor(private http: HttpClient) {}
-
-  listar(): Observable<ListaCompromissosResponse> {
-    return this.http.post<ListaCompromissosResponse>(this.apiUrl+'ObterTodosCompromissos', {
-      dataInicio: '2025-07-03T00:00:00Z',
-      dataFim: '2025-07-03T23:59:59Z'
+  private criarHeaders(token: string): HttpHeaders {
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: ` ${token}`
     });
   }
-cadastrar(compromisso: Compromisso): Observable<Compromisso> {
-  const payload = {
-    titulo: compromisso.titulo,
-    descricao: compromisso.descricao,
-    dataInicio: compromisso.inicio,
-    dataFim: compromisso.termino,
-    localizacao: compromisso.localizacao,
-    status: this.converterStatusParaNumero(compromisso.status)
-  };  
 
-  return this.http.post<Compromisso>(this.apiUrl+'CriarCompromisso', payload);
-}
+  listar(): Observable<ListaCompromissosResponse> {
+    const body = {
+      dataInicio: '2025-07-03T00:00:00Z',
+      dataFim: '2025-07-03T23:59:59Z'
+    };
+
+    return this.tokenService.getToken().pipe(
+      switchMap(res => {
+        const headers = this.criarHeaders(res.token || '');
+        return this.http.post<ListaCompromissosResponse>(this.apiUrl + 'ObterTodosCompromissos', body, { headers });
+      })
+    );
+  }
+
+  cadastrar(compromisso: Compromisso): Observable<Compromisso> {
+    const payload = {
+      titulo: compromisso.titulo,
+      descricao: compromisso.descricao,
+      dataInicio: compromisso.inicio,
+      dataFim: compromisso.termino,
+      localizacao: compromisso.localizacao,
+      status: this.converterStatusParaNumero(compromisso.status)
+    };
+
+    return this.tokenService.getToken().pipe(
+      switchMap(res => {
+        const headers = this.criarHeaders(res.token || '');
+        return this.http.post<Compromisso>(this.apiUrl + 'CriarCompromisso', payload, { headers });
+      })
+    );
+  }
 
   editar(id: string, compromisso: Compromisso): Observable<Compromisso> {
-  const payload = {
-    id: id, // ← importante incluir o ID se a API exige
-    titulo: compromisso.titulo,
-    descricao: compromisso.descricao,
-    dataInicio: compromisso.inicio,
-    dataFim: compromisso.termino,
-    localizacao: compromisso.localizacao,
-    status: this.converterStatusParaNumero(compromisso.status)
-  };
+    const payload = {
+      id: id,
+      titulo: compromisso.titulo,
+      descricao: compromisso.descricao,
+      dataInicio: compromisso.inicio,
+      dataFim: compromisso.termino,
+      localizacao: compromisso.localizacao,
+      status: this.converterStatusParaNumero(compromisso.status)
+    };
 
-  return this.http.post<Compromisso>(this.apiUrl+'AtualizarCompromisso', payload);
-}
-
-excluir(id: string): Observable<void> {
-  const url = this.apiUrl+`RemoverCompromisso?id=${id}`;
-  return this.http.delete<void>(url);
-}
-  
-  private converterStatusParaNumero(status: 'confirmado' | 'pendente' | 'cancelado'): number {
-  switch (status) {
-    case 'pendente': return 0;
-    case 'confirmado': return 1;
-    case 'cancelado': return 2;
-    default: return 0;
+    return this.tokenService.getToken().pipe(
+      switchMap(res => {
+        const headers = this.criarHeaders(res.token || '');
+        return this.http.post<Compromisso>(this.apiUrl + 'AtualizarCompromisso', payload, { headers });
+      })
+    );
   }
-}
+
+  excluir(id: string): Observable<void> {
+    return this.tokenService.getToken().pipe(
+      switchMap(res => {
+        const headers = this.criarHeaders(res.token || '');
+        return this.http.delete<void>(`${this.apiUrl}RemoverCompromisso?id=${id}`, { headers });
+      })
+    );
+  }
+
+  private converterStatusParaNumero(status: 'confirmado' | 'pendente' | 'cancelado'): number {
+    switch (status) {
+      case 'pendente': return 0;
+      case 'confirmado': return 1;
+      case 'cancelado': return 2;
+      default: return 0;
+    }
+  }
 }
