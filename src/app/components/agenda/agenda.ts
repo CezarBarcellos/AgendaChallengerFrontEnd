@@ -63,7 +63,20 @@ export class CompromissosComponent implements OnInit {
   abrirNovo() {
     this.modoEdicao = true;
     this.editandoId = null;
-    this.formCompromisso.reset({ status: 'pendente', inicio: '', termino: '' });
+
+    const agora = new Date();
+    const maisUmaHora = new Date(agora.getTime() + 60 * 60 * 1000);
+
+    const formatarData = (data: Date): string => data.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+
+    this.formCompromisso.reset({
+      titulo: '',
+      descricao: '',
+      inicio: formatarData(agora),
+      termino: formatarData(maisUmaHora),
+      localizacao: '',
+      status: 'pendente'
+    });
   }
 
   abrirEdicao(id: string) {
@@ -71,11 +84,17 @@ export class CompromissosComponent implements OnInit {
     const c = this.compromissos.find(c => c.id === id);
     if (!c) return;
     this.editandoId = c.id ?? null;
+
+    const formatarData = (data: string | Date): string => {
+      const d = new Date(data);
+      return d.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+    };
+
     this.formCompromisso.setValue({
       titulo: c.titulo,
       descricao: c.descricao,
-      inicio: c.inicio,
-      termino: c.termino,
+      inicio: formatarData(c.inicio),
+      termino: formatarData(c.termino),
       localizacao: c.localizacao,
       status: c.status
     });

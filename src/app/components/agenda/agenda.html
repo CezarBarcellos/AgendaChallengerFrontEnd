@@ -1,10 +1,10 @@
 <div class="compromissos-container">
-  <div class="acoes" *ngIf="abaAtiva !== 'calendario'">
+  <div class="acoes" *ngIf="abaAtiva !== 'calendario' && !modoEdicao">
     <button class="btn btn-add" (click)="abrirNovo()"><i class="pi pi-plus"></i> Novo</button>
     <button class="btn btn-calendar" (click)="visualizarCalendario()"><i class="pi pi-calendar"></i> Calendário</button>
   </div>
 
-  <div *ngIf="abaAtiva === 'tabela'">
+  <div *ngIf="abaAtiva === 'tabela' && !modoEdicao">
     <h2><i class="pi pi-list"></i> Lista de Compromissos</h2>
     <table class="grid">
       <thead>
@@ -76,7 +76,7 @@
   <div *ngIf="abaAtiva === 'calendario'" class="calendario-container">
     <div class="acoes">
       <button class="btn btn-add" (click)="abrirNovo()"><i class="pi pi-plus"></i> Novo</button>
-      <button class="btn btn-back" (click)="abaAtiva = 'tabela'"><i class="pi pi-arrow-left"></i> Voltar</button>
+      <button class="btn btn-back" type="button" (click)="abaAtiva = 'tabela'"><i class="pi pi-arrow-left"></i> Voltar</button>
     </div>
 
     <h3><i class="pi pi-calendar"></i> Calendário do Mês</h3>
