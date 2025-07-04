@@ -1,17 +1,23 @@
 <div class="login-container">
   <h2>Login</h2>
-  <form #loginForm="ngForm" (ngSubmit)="onSubmit()">
+
+  <!-- Mensagem de erro -->
+  <div *ngIf="erro" class="erro-mensagem">
+    {{ erro }}
+  </div>
+
+  <form (ngSubmit)="onSubmit()">
     <div class="form-group">
       <label for="username">Usuário</label>
-      <input id="username" name="username" [(ngModel)]="username" required />
+      <input id="username" type="text" [(ngModel)]="username" name="username" required />
     </div>
+
     <div class="form-group">
       <label for="password">Senha</label>
-      <input id="password" name="password" type="password" [(ngModel)]="password" required />
+      <input id="password" type="password" [(ngModel)]="password" name="password" required />
     </div>
-    <div class="button-group">
-      <button type="submit" class="login"><i class="fas fa-sign-in-alt"></i> Entrar</button>
-      <button type="button" class="clear" (click)="onClear()"><i class="fas fa-eraser"></i> Limpar</button>
-    </div>
+
+    <button type="submit" class="btn-login">Entrar</button>
+    <button type="button" class="btn-clear" (click)="onClear()">Limpar</button>
   </form>
 </div>

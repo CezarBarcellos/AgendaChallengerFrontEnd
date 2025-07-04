@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Compromisso {
-  id?: number;
+  id?: string;
   titulo: string;
   descricao: string;
   inicio: string;  // data em ISO string
@@ -53,7 +53,7 @@ cadastrar(compromisso: Compromisso): Observable<Compromisso> {
   return this.http.post<Compromisso>(this.apiUrl+'CriarCompromisso', payload);
 }
 
-  editar(id: number, compromisso: Compromisso): Observable<Compromisso> {
+  editar(id: string, compromisso: Compromisso): Observable<Compromisso> {
   const payload = {
     id: id, // ← importante incluir o ID se a API exige
     titulo: compromisso.titulo,
@@ -64,10 +64,10 @@ cadastrar(compromisso: Compromisso): Observable<Compromisso> {
     status: this.converterStatusParaNumero(compromisso.status)
   };
 
-  return this.http.put<Compromisso>(this.apiUrl+'AtualizarCompromisso', payload);
+  return this.http.post<Compromisso>(this.apiUrl+'AtualizarCompromisso', payload);
 }
 
-excluir(id: number): Observable<void> {
+excluir(id: string): Observable<void> {
   const url = this.apiUrl+`RemoverCompromisso?id=${id}`;
   return this.http.delete<void>(url);
 }

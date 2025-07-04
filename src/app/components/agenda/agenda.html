@@ -2,7 +2,7 @@
 
   <h2>
     <i class="fas fa-calendar-alt"></i>
-    {{ modoEdicao ? (editandoIndex !== null ? 'Editar Compromisso' : 'Novo Compromisso') : 'Lista de Compromissos' }}
+    {{ modoEdicao ? (editandoId !== null ? 'Editar Compromisso' : 'Novo Compromisso') : 'Lista de Compromissos' }}
 
     <!-- Botão para abrir o formulário Novo -->
     <button *ngIf="!modoEdicao" class="btn btn-add" (click)="abrirNovo()">
@@ -45,12 +45,10 @@
           </span>
         </td>
         <td class="acoes">
-          <button class="btn btn-edit" (click)="abrirEdicao(i)">
-            <i class="fas fa-edit"></i>Editar
-          </button>
-          <button class="btn btn-delete" (click)="onExcluir(i)">
-            <i class="fas fa-trash-alt"></i>Excluir
-          </button>
+          <button class="btn btn-edit" *ngIf="c.id" (click)="abrirEdicao(c.id)">Editar</button>
+          <button *ngIf="c.id" (click)="onExcluir(c.id)" class="btn btn-delete">
+          <i class="fa fa-trash"></i> Excluir
+        </button>
         </td>
       </tr>
     </tbody>

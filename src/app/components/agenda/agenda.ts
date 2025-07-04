@@ -14,7 +14,7 @@ export class CompromissosComponent implements OnInit {
 
   compromissos: Compromisso[] = [];
   modoEdicao = false;
-  editandoIndex: number | null = null;
+  editandoId: string | null = null;
 
   formCompromisso!: FormGroup;
 
@@ -39,31 +39,29 @@ export class CompromissosComponent implements OnInit {
     });
   }
 
-carregarCompromissos() {
-  this.compromissosService.listar().subscribe({
-    next: (dados) => {
-      // Mapeia o retorno para a interface Compromisso da UI
-      this.compromissos = dados.lstCompromissos.map(item => ({
-        id: item.id,
-        titulo: item.titulo,
-        descricao: item.descricao,
-        inicio: item.dataInicio,
-        termino: item.dataFim,
-        localizacao: item.localizacao,
-        status: item.status
-      }));
-      console.log('Compromissos carregados:', this.compromissos);
-    },
-    error: (err) => {
-      console.error('Erro ao carregar compromissos', err);
-    }
-  });
-}
-
+  carregarCompromissos() {
+    this.compromissosService.listar().subscribe({
+      next: (dados) => {
+        this.compromissos = dados.lstCompromissos.map(item => ({
+          id: String(item.id),  // Forçar id como string
+          titulo: item.titulo,
+          descricao: item.descricao,
+          inicio: item.dataInicio,
+          termino: item.dataFim,
+          localizacao: item.localizacao,
+          status: item.status
+        }));
+        console.log('Compromissos carregados:', this.compromissos);
+      },
+      error: (err) => {
+        console.error('Erro ao carregar compromissos', err);
+      }
+    });
+  }
 
   abrirNovo() {
     this.modoEdicao = true;
-    this.editandoIndex = null;
+    this.editandoId = null;
     this.formCompromisso.reset({
       status: 'pendente',
       inicio: '',
@@ -71,24 +69,28 @@ carregarCompromissos() {
     });
   }
 
-  abrirEdicao(index: number) {
-    this.modoEdicao = true;
-    this.editandoIndex = index;
+abrirEdicao(id: string) {
+  this.modoEdicao = true;
 
-    const c = this.compromissos[index];
-    this.formCompromisso.setValue({
-      titulo: c.titulo,
-      descricao: c.descricao,
-      inicio: c.inicio,    // ISO string
-      termino: c.termino,  // ISO string
-      localizacao: c.localizacao,
-      status: c.status
-    });
-  }
+  const index = this.compromissos.findIndex(c => c.id === id);
+  if (index === -1) return;
+
+  const c = this.compromissos[index];
+  this.editandoId = c.id ?? null;
+
+  this.formCompromisso.setValue({
+    titulo: c.titulo,
+    descricao: c.descricao,
+    inicio: c.inicio,
+    termino: c.termino,
+    localizacao: c.localizacao,
+    status: c.status
+  });
+}
 
   cancelar() {
     this.modoEdicao = false;
-    this.editandoIndex = null;
+    this.editandoId = null;
     this.formCompromisso.reset();
   }
 
@@ -104,14 +106,18 @@ carregarCompromissos() {
       termino: formValue.termino,
       localizacao: formValue.localizacao,
       status: formValue.status,
-      // id fica no backend
+      // id é gerado no backend
     };
 
-    if (this.editandoIndex !== null) {
-      const id = this.compromissos[this.editandoIndex].id!;
-      this.compromissosService.editar(id, compromissoPayload).subscribe({
+    if (this.editandoId) {
+      this.compromissosService.editar(this.editandoId, compromissoPayload).subscribe({
         next: c => {
-          this.compromissos[this.editandoIndex!] = c;
+          // Atualizar compromisso na lista, garantindo comparação string === string
+          const idx = this.compromissos.findIndex(comp => comp.id === this.editandoId);
+          if (idx !== -1) this.compromissos[idx] = {
+            ...c,
+            id: String(c.id)  // garantir id string no retorno
+          };
           this.cancelar();
         },
         error: err => console.error('Erro ao editar compromisso', err)
@@ -119,7 +125,10 @@ carregarCompromissos() {
     } else {
       this.compromissosService.cadastrar(compromissoPayload).subscribe({
         next: c => {
-          this.compromissos.push(c);
+          this.compromissos.push({
+            ...c,
+            id: String(c.id)  // garantir id string no retorno
+          });
           this.cancelar();
         },
         error: err => console.error('Erro ao cadastrar compromisso', err)
@@ -127,15 +136,16 @@ carregarCompromissos() {
     }
   }
 
-  onExcluir(index: number) {
-    const compromisso = this.compromissos[index];
-    if (compromisso.id && confirm('Tem certeza que deseja excluir este compromisso?')) {
-      this.compromissosService.excluir(compromisso.id).subscribe({
-        next: () => {
-          this.compromissos.splice(index, 1);
-        },
-        error: err => console.error('Erro ao excluir compromisso', err)
-      });
-    }
+onExcluir(id: string) {
+  if (!id) return;
+  if (confirm('Tem certeza que deseja excluir este compromisso?')) {
+    this.compromissosService.excluir(id).subscribe({
+      next: () => {
+        const idx = this.compromissos.findIndex(c => c.id === id);
+        if (idx !== -1) this.compromissos.splice(idx, 1);
+      },
+      error: err => console.error('Erro ao excluir compromisso', err)
+    });
   }
+}
 }
